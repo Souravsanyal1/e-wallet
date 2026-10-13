@@ -10,64 +10,31 @@ import 'firebase_options.dart';
 import 'routes/app_pages.dart';
 import 'routes/app_routes.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const EliteChatBootstrap());
-}
 
-class EliteChatBootstrap extends StatefulWidget {
-  const EliteChatBootstrap({super.key});
-
-  @override
-  State<EliteChatBootstrap> createState() => _EliteChatBootstrapState();
-}
-
-class _EliteChatBootstrapState extends State<EliteChatBootstrap> {
-  SettingsService? _settingsService;
-  Object? _startupError;
-  bool _isReady = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeApp();
+  Object? startupError;
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ).timeout(const Duration(seconds: 20));
+  } catch (error, stackTrace) {
+    startupError = error;
+    debugPrint('Firebase initialization failed: $error\n$stackTrace');
   }
 
-  Future<void> _initializeApp() async {
-    Object? startupError;
-    try {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      ).timeout(const Duration(seconds: 20));
-    } catch (error, stackTrace) {
-      startupError = error;
-      debugPrint('Firebase initialization failed: $error\n$stackTrace');
-    }
-
-    final settingsService = SettingsService();
-    try {
-      await settingsService.init().timeout(const Duration(seconds: 5));
-    } catch (error, stackTrace) {
-      debugPrint('Settings initialization failed; using defaults: $error\n$stackTrace');
-    }
-    Get.put<SettingsService>(settingsService, permanent: true);
-
-    if (!mounted) return;
-    setState(() {
-      _settingsService = settingsService;
-      _startupError = startupError;
-      _isReady = true;
-    });
+  final settingsService = SettingsService();
+  try {
+    await settingsService.init().timeout(const Duration(seconds: 5));
+  } catch (error, stackTrace) {
+    debugPrint('Settings initialization failed; using defaults: $error\n$stackTrace');
   }
+  Get.put<SettingsService>(settingsService, permanent: true);
 
-  @override
-  Widget build(BuildContext context) {
-    if (!_isReady) return const _StartupLoadingView();
-    return EliteChatApp(
-      settingsService: _settingsService!,
-      startupError: _startupError,
-    );
-  }
+  runApp(EliteChatApp(
+    settingsService: settingsService,
+    startupError: startupError,
+  ));
 }
 
 class EliteChatApp extends StatelessWidget {
@@ -115,43 +82,7 @@ class EliteChatApp extends StatelessWidget {
   }
 }
 
-class _StartupLoadingView extends StatelessWidget {
-  const _StartupLoadingView();
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark(),
-      home: const Scaffold(
-        backgroundColor: Color(0xFF101114),
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.bolt_rounded, size: 64, color: Color(0xFFF7D97A)),
-              SizedBox(height: 16),
-              Text(
-                'EliteChat',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              SizedBox(height: 20),
-              SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _StartupErrorView extends StatelessWidget {
   final Object error;
