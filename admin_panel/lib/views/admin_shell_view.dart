@@ -255,9 +255,15 @@ class AdminShellView extends GetView<AdminController> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AdminColors.outline),
               ),
-              child: ListView.separated(
-                itemCount: controller.users.length,
-                separatorBuilder: (_, _) => const Divider(height: 1, color: AdminColors.outline),
+              child: controller.users.isEmpty
+                  ? _emptyState(
+                      icon: Icons.people_outline_rounded,
+                      title: 'No Registered Users',
+                      description: 'Registered user accounts from live wallet authentication will appear here in real time.',
+                    )
+                  : ListView.separated(
+                      itemCount: controller.users.length,
+                      separatorBuilder: (_, _) => const Divider(height: 1, color: AdminColors.outline),
                 itemBuilder: (context, index) {
                   final u = controller.users[index];
                   return ListTile(
@@ -331,8 +337,21 @@ class AdminShellView extends GetView<AdminController> {
           const Text('Reported content triage and user reports', style: TextStyle(fontSize: 13, color: AdminColors.textSecondary)),
           const SizedBox(height: 24),
           Expanded(
-            child: ListView.builder(
-              itemCount: controller.cases.length,
+            child: controller.cases.isEmpty
+                ? Container(
+                    decoration: BoxDecoration(
+                      color: AdminColors.surface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AdminColors.outline),
+                    ),
+                    child: _emptyState(
+                      icon: Icons.check_circle_outline_rounded,
+                      title: 'Moderation Queue Clear',
+                      description: 'No reported messages or user flags currently pending review.',
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: controller.cases.length,
               itemBuilder: (context, index) {
                 final c = controller.cases[index];
                 return Container(
@@ -438,9 +457,15 @@ class AdminShellView extends GetView<AdminController> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AdminColors.outline),
               ),
-              child: ListView.separated(
-                itemCount: controller.payments.length,
-                separatorBuilder: (_, _) => const Divider(height: 1, color: AdminColors.outline),
+              child: controller.payments.isEmpty
+                  ? _emptyState(
+                      icon: Icons.currency_bitcoin_rounded,
+                      title: 'No Payments Recorded',
+                      description: 'On-chain BEP-20 USDC transactions and subscription payments will appear here.',
+                    )
+                  : ListView.separated(
+                      itemCount: controller.payments.length,
+                      separatorBuilder: (_, _) => const Divider(height: 1, color: AdminColors.outline),
                 itemBuilder: (context, index) {
                   final p = controller.payments[index];
                   return ListTile(
@@ -593,9 +618,15 @@ class AdminShellView extends GetView<AdminController> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AdminColors.outline),
               ),
-              child: ListView.separated(
-                itemCount: controller.auditLogs.length,
-                separatorBuilder: (_, _) => const Divider(height: 1, color: AdminColors.outline),
+              child: controller.auditLogs.isEmpty
+                  ? _emptyState(
+                      icon: Icons.receipt_long_rounded,
+                      title: 'Audit Trail Clean',
+                      description: 'All administrative actions, suspensions, and plan modifications are logged here.',
+                    )
+                  : ListView.separated(
+                      itemCount: controller.auditLogs.length,
+                      separatorBuilder: (_, _) => const Divider(height: 1, color: AdminColors.outline),
                 itemBuilder: (context, index) {
                   final a = controller.auditLogs[index];
                   return ListTile(
@@ -711,7 +742,7 @@ class AdminShellView extends GetView<AdminController> {
                 Get.dialog(
                   AlertDialog(
                     title: const Text('Verified Wallet Address'),
-                    content: SelectableText(user.walletAddress ?? '0x71C8412092d8866F407b621946414380b49f4b9B'),
+                    content: SelectableText(user.walletAddress ?? 'Wallet not connected or unavailable'),
                     actions: [
                       TextButton(onPressed: () => Get.back(), child: const Text('Done')),
                     ],
@@ -779,6 +810,35 @@ class AdminShellView extends GetView<AdminController> {
             child: const Text('Permanent Ban'),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _emptyState({
+    required IconData icon,
+    required String title,
+    required String description,
+  }) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 48, color: AdminColors.textSecondary.withValues(alpha: 0.6)),
+            const SizedBox(height: 16),
+            Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AdminColors.textPrimary)),
+            const SizedBox(height: 8),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 380),
+              child: Text(
+                description,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 13, color: AdminColors.textSecondary),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

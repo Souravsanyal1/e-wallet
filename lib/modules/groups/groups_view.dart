@@ -147,7 +147,7 @@ class GroupsView extends GetView<GroupsController> {
             const SizedBox(height: 6),
             TextField(
               controller: membersEdit,
-              decoration: const InputDecoration(hintText: '@alice, @bob, @charlie'),
+              decoration: const InputDecoration(hintText: '@handle1, @handle2'),
             ),
           ],
         ),

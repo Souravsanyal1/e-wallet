@@ -21,8 +21,8 @@ class ConversationView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveId = conversationId ?? Get.parameters['id'] ?? 'c_alice';
-    final effectiveTitle = conversationTitle ?? Get.parameters['title'] ?? 'Alice Chen';
+    final effectiveId = conversationId ?? Get.parameters['id'] ?? '';
+    final effectiveTitle = conversationTitle ?? Get.parameters['title'] ?? 'Chat';
 
     final controller = Get.isRegistered<ConversationController>(tag: effectiveId)
         ? Get.find<ConversationController>(tag: effectiveId)
@@ -40,7 +40,7 @@ class ConversationView extends StatelessWidget {
         titleSpacing: 0,
         title: Row(
           children: [
-            Avatar(name: effectiveTitle, size: 38, showBadge: true, isOnline: true),
+            Avatar(name: effectiveTitle, size: 38, showBadge: false, isOnline: false),
             const SizedBox(width: AppDimensions.space12),
             Expanded(
               child: Column(
@@ -51,16 +51,16 @@ class ConversationView extends StatelessWidget {
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   Obx(
-                    () => Text(
-                      controller.isOtherTyping.value ? 'typing'.tr : 'online'.tr,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: controller.isOtherTyping.value
-                            ? (isDark ? AppColors.darkPrimary : AppColors.lightPrimary)
-                            : AppColors.darkSuccess,
-                        fontWeight: controller.isOtherTyping.value ? FontWeight.w600 : FontWeight.normal,
-                      ),
-                    ),
+                    () => controller.isOtherTyping.value
+                        ? Text(
+                            'typing'.tr,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? AppColors.darkPrimary : AppColors.lightPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          )
+                        : const SizedBox.shrink(),
                   ),
                 ],
               ),

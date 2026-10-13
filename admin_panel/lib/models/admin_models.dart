@@ -25,13 +25,24 @@ class DashboardMetrics {
   final String uptimePercent;
 
   const DashboardMetrics({
-    this.totalUsers = 1250,
-    this.openReports = 4,
-    this.totalPayments = 380,
-    this.activeSubscriptions = 95,
+    this.totalUsers = 0,
+    this.openReports = 0,
+    this.totalPayments = 0,
+    this.activeSubscriptions = 0,
     this.serverHealth = 'Healthy',
-    this.uptimePercent = '99.98%',
+    this.uptimePercent = '100%',
   });
+
+  factory DashboardMetrics.fromMap(Map<String, dynamic> data) {
+    return DashboardMetrics(
+      totalUsers: (data['totalUsers'] as num?)?.toInt() ?? 0,
+      openReports: (data['openReports'] as num?)?.toInt() ?? 0,
+      totalPayments: (data['totalPayments'] as num?)?.toInt() ?? 0,
+      activeSubscriptions: (data['activeSubscriptions'] as num?)?.toInt() ?? 0,
+      serverHealth: data['serverHealth'] as String? ?? 'Healthy',
+      uptimePercent: data['uptimePercent'] as String? ?? '100%',
+    );
+  }
 }
 
 class UserRecord {
@@ -50,6 +61,28 @@ class UserRecord {
     this.walletAddress,
     required this.createdAt,
   });
+
+  factory UserRecord.fromDoc(String docId, Map<String, dynamic> data) {
+    DateTime parseDate(dynamic val) {
+      if (val == null) return DateTime.now();
+      if (val is DateTime) return val;
+      if (val is int) return DateTime.fromMillisecondsSinceEpoch(val);
+      try {
+        final toDate = (val as dynamic).toDate();
+        if (toDate is DateTime) return toDate;
+      } catch (_) {}
+      return DateTime.now();
+    }
+
+    return UserRecord(
+      id: docId,
+      handle: data['handle'] as String? ?? 'user',
+      displayName: data['displayName'] as String? ?? 'User',
+      status: data['status'] as String? ?? 'active',
+      walletAddress: data['walletAddress'] as String?,
+      createdAt: parseDate(data['createdAt']),
+    );
+  }
 }
 
 class ModerationCase {
@@ -68,6 +101,28 @@ class ModerationCase {
     this.status = 'open',
     required this.createdAt,
   });
+
+  factory ModerationCase.fromDoc(String docId, Map<String, dynamic> data) {
+    DateTime parseDate(dynamic val) {
+      if (val == null) return DateTime.now();
+      if (val is DateTime) return val;
+      if (val is int) return DateTime.fromMillisecondsSinceEpoch(val);
+      try {
+        final toDate = (val as dynamic).toDate();
+        if (toDate is DateTime) return toDate;
+      } catch (_) {}
+      return DateTime.now();
+    }
+
+    return ModerationCase(
+      id: docId,
+      reporterId: data['reporterId'] as String? ?? '',
+      targetUserId: data['targetUserId'] as String? ?? '',
+      reason: data['reason'] as String? ?? 'No reason specified',
+      status: data['status'] as String? ?? 'open',
+      createdAt: parseDate(data['createdAt']),
+    );
+  }
 }
 
 class PaymentItem {
@@ -86,6 +141,28 @@ class PaymentItem {
     required this.status,
     required this.createdAt,
   });
+
+  factory PaymentItem.fromDoc(String docId, Map<String, dynamic> data) {
+    DateTime parseDate(dynamic val) {
+      if (val == null) return DateTime.now();
+      if (val is DateTime) return val;
+      if (val is int) return DateTime.fromMillisecondsSinceEpoch(val);
+      try {
+        final toDate = (val as dynamic).toDate();
+        if (toDate is DateTime) return toDate;
+      } catch (_) {}
+      return DateTime.now();
+    }
+
+    return PaymentItem(
+      id: docId,
+      userId: data['userId'] as String? ?? '',
+      txHash: data['txHash'] as String? ?? '',
+      amount: (data['amount'] as num?)?.toDouble() ?? 0.0,
+      status: data['status'] as String? ?? 'confirmed',
+      createdAt: parseDate(data['createdAt']),
+    );
+  }
 }
 
 class AuditEntry {
@@ -106,4 +183,27 @@ class AuditEntry {
     required this.reason,
     required this.createdAt,
   });
+
+  factory AuditEntry.fromDoc(String docId, Map<String, dynamic> data) {
+    DateTime parseDate(dynamic val) {
+      if (val == null) return DateTime.now();
+      if (val is DateTime) return val;
+      if (val is int) return DateTime.fromMillisecondsSinceEpoch(val);
+      try {
+        final toDate = (val as dynamic).toDate();
+        if (toDate is DateTime) return toDate;
+      } catch (_) {}
+      return DateTime.now();
+    }
+
+    return AuditEntry(
+      id: docId,
+      actorRole: data['actorRole'] as String? ?? 'admin',
+      action: data['action'] as String? ?? 'unknown',
+      targetType: data['targetType'] as String? ?? '',
+      targetId: data['targetId'] as String? ?? '',
+      reason: data['reason'] as String? ?? '',
+      createdAt: parseDate(data['createdAt']),
+    );
+  }
 }

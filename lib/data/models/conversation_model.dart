@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'profile_model.dart';
 
 class ConversationModel {
@@ -30,17 +31,46 @@ class ConversationModel {
   bool get isDirect => type == 'direct';
   bool get isGroup => type == 'group';
 
+  factory ConversationModel.fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> doc, {
+    String? currentUserId,
+  }) {
+    final data = doc.data() ?? {};
+    final rawLastAt = data['lastMessageAt'];
+    DateTime? lastMsgDate;
+    if (rawLastAt is Timestamp) {
+      lastMsgDate = rawLastAt.toDate();
+    } else if (rawLastAt is String) {
+      lastMsgDate = DateTime.tryParse(rawLastAt);
+    }
+
+    final members = (data['members'] as List<dynamic>?)?.cast<String>() ?? [];
+
+    return ConversationModel(
+      id: doc.id,
+      type: data['type'] as String? ?? 'direct',
+      title: data['title'] as String? ?? 'Conversation',
+      avatarPath: data['avatarPath'] as String?,
+      directKey: data['directKey'] as String?,
+      lastMessageAt: lastMsgDate,
+      lastMessagePreview: data['lastMessagePreview'] as String?,
+      unreadCount: data['unreadCount'] as int? ?? 0,
+      memberCount: members.length,
+      isMuted: data['isMuted'] as bool? ?? false,
+    );
+  }
+
   factory ConversationModel.fromJson(Map<String, dynamic> json) {
     return ConversationModel(
       id: json['id'] as String,
       type: json['type'] as String? ?? 'direct',
       title: json['title'] as String? ?? 'Conversation',
-      avatarPath: json['avatar_path'] as String?,
-      directKey: json['direct_key'] as String?,
+      avatarPath: json['avatar_path'] as String? ?? json['avatarPath'] as String?,
+      directKey: json['direct_key'] as String? ?? json['directKey'] as String?,
       lastMessageAt: json['last_message_at'] != null
           ? DateTime.parse(json['last_message_at'] as String)
           : null,
-      lastMessagePreview: json['last_message_preview'] as String?,
+      lastMessagePreview: json['last_message_preview'] as String? ?? json['lastMessagePreview'] as String?,
       unreadCount: json['unread_count'] as int? ?? 0,
       otherUser: json['other_user'] != null
           ? ProfileModel.fromJson(json['other_user'] as Map<String, dynamic>)
@@ -54,14 +84,14 @@ class ConversationModel {
         'id': id,
         'type': type,
         'title': title,
-        'avatar_path': avatarPath,
-        'direct_key': directKey,
-        'last_message_at': lastMessageAt?.toIso8601String(),
-        'last_message_preview': lastMessagePreview,
-        'unread_count': unreadCount,
-        'other_user': otherUser?.toJson(),
-        'member_count': memberCount,
-        'is_muted': isMuted,
+        'avatarPath': avatarPath,
+        'directKey': directKey,
+        'lastMessageAt': lastMessageAt?.toIso8601String(),
+        'lastMessagePreview': lastMessagePreview,
+        'unreadCount': unreadCount,
+        'otherUser': otherUser?.toJson(),
+        'memberCount': memberCount,
+        'isMuted': isMuted,
       };
 
   ConversationModel copyWith({

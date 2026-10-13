@@ -12,14 +12,18 @@ import '../wallet/wallet_view.dart';
 
 class HomeController extends GetxController {
   final RxInt currentTabIndex = 0.obs;
-  final RxnString activeConversationId = RxnString('c_alice');
+  final RxnString activeConversationId = RxnString();
+  final RxString activeConversationTitle = ''.obs;
 
   void changeTab(int index) {
     currentTabIndex.value = index;
   }
 
-  void selectConversation(String id) {
+  void selectConversation(String id, [String title = '']) {
     activeConversationId.value = id;
+    if (title.isNotEmpty) {
+      activeConversationTitle.value = title;
+    }
   }
 }
 

@@ -4,8 +4,8 @@ import '../services/wallet_service.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/channel_repository.dart';
 import '../../data/repositories/chat_repository.dart';
-import '../../data/repositories/mock_auth_repository.dart';
-import '../../data/repositories/mock_chat_repository.dart';
+import '../../data/repositories/firebase_auth_repository.dart';
+import '../../data/repositories/firestore_chat_repository.dart';
 
 class InitialBinding extends Bindings {
   @override
@@ -14,9 +14,9 @@ class InitialBinding extends Bindings {
     Get.put<UiService>(UiService(), permanent: true);
     Get.put<WalletService>(WalletService(), permanent: true);
 
-    // 2. Repositories (Mock implementations provide rich interactive demo & offline testing)
-    Get.put<AuthRepository>(MockAuthRepository(), permanent: true);
-    Get.put<ChatRepository>(MockChatRepository(), permanent: true);
-    Get.put<ChannelRepository>(MockChannelRepository(), permanent: true);
+    // 2. Real Firestore and Firebase-backed repositories (Section 11)
+    Get.put<AuthRepository>(FirebaseAuthRepository(), permanent: true);
+    Get.put<ChatRepository>(FirestoreChatRepository(), permanent: true);
+    Get.put<ChannelRepository>(FirestoreChannelRepository(), permanent: true);
   }
 }

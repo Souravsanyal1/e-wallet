@@ -145,10 +145,39 @@ class HomeView extends GetView<HomeController> {
                         ),
                         const VerticalDivider(width: 1),
                         Expanded(
-                          child: ConversationView(
-                            conversationId: controller.activeConversationId.value ?? 'c_alice',
-                            conversationTitle: 'Alice Chen',
-                          ),
+                          child: controller.activeConversationId.value != null
+                              ? ConversationView(
+                                  conversationId: controller.activeConversationId.value!,
+                                  conversationTitle: controller.activeConversationTitle.value.isNotEmpty
+                                      ? controller.activeConversationTitle.value
+                                      : 'Chat',
+                                )
+                              : Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.chat_bubble_outline_rounded,
+                                        size: 64,
+                                        color: theme.colorScheme.outline.withValues(alpha: 0.5),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'Select a conversation',
+                                        style: theme.textTheme.titleMedium?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Choose a conversation from the list to start messaging.',
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: theme.colorScheme.outline,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                         ),
                       ],
                     );

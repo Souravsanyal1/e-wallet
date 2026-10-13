@@ -5,7 +5,7 @@ import 'conversation_controller.dart';
 class ConversationBinding extends Bindings {
   @override
   void dependencies() {
-    final convId = Get.parameters['id'] ?? 'c_alice';
+    final convId = Get.parameters['id'] ?? '';
     Get.lazyPut<ConversationController>(
       () => ConversationController(
         Get.find<ChatRepository>(),

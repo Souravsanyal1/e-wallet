@@ -6,6 +6,7 @@ import '../../core/theme/app_dimensions.dart';
 import '../../core/widgets/avatar.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../routes/app_routes.dart';
+import '../home/home_controller.dart';
 import 'chat_list_controller.dart';
 
 class ChatListView extends GetView<ChatListController> {
@@ -88,6 +89,9 @@ class ChatListView extends GetView<ChatListController> {
 
                     return InkWell(
                       onTap: () {
+                        if (Get.isRegistered<HomeController>()) {
+                          Get.find<HomeController>().selectConversation(conv.id, conv.title);
+                        }
                         Get.toNamed(
                           '${AppRoutes.conversation}?id=${conv.id}&title=${Uri.encodeComponent(conv.title)}',
                         );
