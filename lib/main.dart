@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
 import 'core/bindings/initial_binding.dart';
 import 'core/localization/app_translations.dart';
 import 'core/services/settings_service.dart';
 import 'core/theme/app_theme.dart';
+import 'firebase_options.dart';
 import 'routes/app_pages.dart';
 import 'routes/app_routes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // Initialize persistent settings service before runApp
   final settingsService = await Get.putAsync(() => SettingsService().init());

@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "517785733421",
+    "firebase_url": "https://e-wallet-1cb99-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "e-wallet-1cb99",
+    "storage_bucket": "e-wallet-1cb99.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:517785733421:android:a274b0d70f58a52f486ba4",
+        "android_client_info": {
+          "package_name": "com.elitechat.example"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD9-ER7xkXFFU_P-GNEBEcRlYxlRx9DlC4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
