@@ -1,4 +1,4 @@
-package com.example.elite_chat
+package com.elitechat.example
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -496,7 +496,7 @@ class AdminShellView extends GetView<AdminController> {
       ('1 Year', '365 days · 4,800 E-FORCE · $47.99 list'),
       ('2 Years', '730 days · 8,400 E-FORCE · $83.99 list'),
     ];
-    return const Padding(
+    return Padding(
       padding: EdgeInsets.all(32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
