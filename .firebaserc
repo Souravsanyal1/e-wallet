@@ -1,0 +1,19 @@
+{
+  "projects": {
+    "default": "elitechat-dev",
+    "dev": "elitechat-dev",
+    "prod": "elitechat-prod"
+  },
+  "targets": {
+    "elitechat-dev": {
+      "hosting": {
+        "app": [
+          "elitechat-app-dev"
+        ],
+        "admin": [
+          "elitechat-admin-dev"
+        ]
+      }
+    }
+  }
+}

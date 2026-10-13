@@ -43,3 +43,13 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Node & Firebase Functions
+**/node_modules/
+functions/lib/
+functions/*.log
+.runtimeconfig.json
+
+# Admin Panel Build
+admin_panel/build/
+admin_panel/.dart_tool/

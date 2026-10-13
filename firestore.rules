@@ -1,0 +1,146 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isNotBanned() {
+      return isAuthenticated() && !exists(/databases/$(database)/documents/bannedUsers/$(request.auth.uid));
+    }
+
+    // 1. Users and Profiles
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow update: if isOwner(userId) &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'suspendedUntil', 'role']);
+      allow create, delete: if false; // Created via Cloud Function
+
+      // Private server-only moderation subcollection
+      match /private/{document=**} {
+        allow read, write: if false;
+      }
+    }
+
+    // Wallets: Read only by the wallet owner; written only by Cloud Functions
+    match /wallets/{walletId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+
+    // Nonces: Server-only
+    match /authNonces/{nonceId} {
+      allow read, write: if false;
+    }
+
+    // 2. Conversations and Messages
+    match /conversations/{conversationId} {
+      allow read: if isAuthenticated() &&
+        request.auth.uid in resource.data.members;
+      allow update: if isAuthenticated() &&
+        request.auth.uid in resource.data.members &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastReadAt', 'isMuted', 'typingUser']);
+      allow create, delete: if false; // Created via createConversation callable
+
+      // Messages subcollection
+      match /messages/{messageId} {
+        allow read: if isAuthenticated() &&
+          request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.members &&
+          resource.data.deletedAt == null;
+
+        allow create: if isNotBanned() &&
+          request.resource.data.senderId == request.auth.uid &&
+          request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.members;
+
+        allow update, delete: if false; // Soft-delete handled by functions
+      }
+    }
+
+    // 3. Channels and Posts
+    match /channels/{channelId} {
+      allow read: if isAuthenticated() && (
+        resource.data.isPublic == true ||
+        request.auth.uid in resource.data.subscribers
+      );
+      allow write: if false;
+
+      match /posts/{postId} {
+        allow read: if isAuthenticated() && (
+          get(/databases/$(database)/documents/channels/$(channelId)).data.isPublic == true ||
+          request.auth.uid in get(/databases/$(database)/documents/channels/$(channelId)).data.subscribers
+        );
+        allow write: if false; // Admin/owner post callable
+      }
+    }
+
+    // 4. Plans, Payments, Subscriptions
+    match /plans/{planId} {
+      allow read: if isAuthenticated() && resource.data.isActive == true;
+      allow write: if false;
+    }
+
+    match /payments/{paymentId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+
+    match /subscriptions/{subscriptionId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+
+    // 5. Reports and Blocks
+    match /reports/{reportId} {
+      allow create: if isNotBanned() && request.resource.data.reporterId == request.auth.uid;
+      allow read, update, delete: if false;
+    }
+
+    match /blocks/{blockId} {
+      allow read, write: if isAuthenticated() && resource.data.blockerId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.blockerId == request.auth.uid;
+    }
+
+    // 6. Admin Collections (Protected per admin-panel.md section 5)
+    match /adminUsers/{id} {
+      allow read: if isAuthenticated() && request.auth.uid == id;
+      allow write: if false;
+    }
+
+    match /adminAuditLogs/{id} {
+      allow read, write: if false; // Server-only append
+    }
+
+    match /adminApprovals/{id} {
+      allow read, write: if false;
+    }
+
+    match /moderationCases/{id} {
+      allow read, write: if false;
+    }
+
+    match /bannedUsers/{id} {
+      allow read, write: if false;
+    }
+
+    match /appConfig/{id} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    match /stats/{id} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    match /announcements/{id} {
+      allow read: if isAuthenticated() && resource.data.status == 'sent';
+      allow write: if false;
+    }
+  }
+}
