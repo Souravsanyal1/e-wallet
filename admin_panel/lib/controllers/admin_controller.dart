@@ -40,17 +40,48 @@ class AdminController extends GetxController {
     if (auth != null) {
       auth.authStateChanges().listen((user) {
         if (user != null) {
-          currentAdmin.value = AdminProfile(
-            uid: user.uid,
-            email: user.email ?? 'admin@elitechat.app',
-            role: AdminRole.superadmin,
-          );
-          _bindRealtimeListeners();
+          unawaited(_loadAdminProfile(user));
         } else {
           currentAdmin.value = null;
           _clearListeners();
         }
       });
+    }
+  }
+
+  Future<void> _loadAdminProfile(User user) async {
+    final firestore = _firestore;
+    if (firestore == null) {
+      currentAdmin.value = null;
+      _clearListeners();
+      return;
+    }
+
+    try {
+      final adminDoc = await firestore.collection('adminUsers').doc(user.uid).get();
+      final data = adminDoc.data();
+      final roleName = data?['role'] as String?;
+      final roleIndex = AdminRole.values.indexWhere((role) => role.name == roleName);
+
+      if (!adminDoc.exists || data?['active'] != true || roleIndex < 0) {
+        currentAdmin.value = null;
+        _clearListeners();
+        await _auth?.signOut();
+        Get.snackbar('Access denied', 'This account is not an active admin.');
+        return;
+      }
+
+      currentAdmin.value = AdminProfile(
+        uid: user.uid,
+        email: user.email ?? 'admin@elitechat.app',
+        role: AdminRole.values[roleIndex],
+      );
+      _bindRealtimeListeners();
+    } catch (_) {
+      currentAdmin.value = null;
+      _clearListeners();
+      await _auth?.signOut();
+      Get.snackbar('Admin access unavailable', 'Could not verify this account’s admin role.');
     }
   }
 
@@ -163,39 +194,31 @@ class AdminController extends GetxController {
     super.onClose();
   }
 
-  Future<void> login(String email, String password, String totpCode) async {
+  Future<void> login(String email, String password) async {
     isLoading.value = true;
     try {
       final auth = _auth;
-      if (auth != null) {
-        final credential = await auth.signInWithEmailAndPassword(
-          email: email.trim(),
-          password: password,
-        );
-        if (credential.user != null) {
-          currentAdmin.value = AdminProfile(
-            uid: credential.user!.uid,
-            email: credential.user!.email ?? email,
-            role: AdminRole.superadmin,
-          );
-          _bindRealtimeListeners();
-          return;
-        }
+      if (auth == null) {
+        throw StateError('Firebase Authentication is not initialized.');
       }
-      // Fallback dev admin session when Firebase is not connected or in test mode
-      currentAdmin.value = AdminProfile(
-        uid: 'adm_${DateTime.now().millisecondsSinceEpoch}',
-        email: email,
-        role: AdminRole.superadmin,
+
+      final credential = await auth.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
       );
-      _bindRealtimeListeners();
-    } catch (e) {
-      currentAdmin.value = AdminProfile(
-        uid: 'adm_${DateTime.now().millisecondsSinceEpoch}',
-        email: email,
-        role: AdminRole.superadmin,
-      );
-      _bindRealtimeListeners();
+      final user = credential.user;
+      if (user == null) {
+        throw StateError('Firebase did not return an authenticated user.');
+      }
+      await _loadAdminProfile(user);
+    } on FirebaseAuthException catch (error) {
+      currentAdmin.value = null;
+      _clearListeners();
+      Get.snackbar('Sign-in failed', error.message ?? 'Check your email and password.');
+    } catch (_) {
+      currentAdmin.value = null;
+      _clearListeners();
+      Get.snackbar('Sign-in failed', 'Could not verify your Firebase admin account.');
     } finally {
       isLoading.value = false;
     }

@@ -2,7 +2,8 @@
   "projects": {
     "default": "elitechat-dev",
     "dev": "elitechat-dev",
-    "prod": "elitechat-prod"
+    "prod": "elitechat-prod",
+    "ewallet": "e-wallet-1cb99"
   },
   "targets": {
     "elitechat-dev": {
@@ -12,6 +13,13 @@
         ],
         "admin": [
           "elitechat-admin-dev"
+        ]
+      }
+    },
+    "e-wallet-1cb99": {
+      "hosting": {
+        "admin": [
+          "ewallet-admin-1cb99"
         ]
       }
     }

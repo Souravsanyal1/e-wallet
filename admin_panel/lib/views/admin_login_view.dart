@@ -9,9 +9,8 @@ class AdminLoginView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<AdminController>();
-    final emailController = TextEditingController(text: 'ops@elitechat.app');
-    final passwordController = TextEditingController(text: '••••••••••••');
-    final totpController = TextEditingController(text: '123456');
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
 
     return Scaffold(
       backgroundColor: AdminColors.background,
@@ -83,16 +82,7 @@ class AdminLoginView extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  const Text('2-Factor Auth (TOTP Code)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 6),
-                  TextField(
-                    controller: totpController,
-                    decoration: const InputDecoration(
-                      hintText: '6-digit authenticator code',
-                      prefixIcon: Icon(Icons.security_rounded, size: 20),
-                    ),
-                  ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 12),
 
                   Obx(
                     () => ElevatedButton(
@@ -101,7 +91,6 @@ class AdminLoginView extends StatelessWidget {
                           : () => controller.login(
                                 emailController.text,
                                 passwordController.text,
-                                totpController.text,
                               ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AdminColors.primary,
@@ -115,7 +104,7 @@ class AdminLoginView extends StatelessWidget {
                               height: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Sign In with MFA', style: TextStyle(fontWeight: FontWeight.w700)),
+                          : const Text('Sign In', style: TextStyle(fontWeight: FontWeight.w700)),
                     ),
                   ),
                 ],
