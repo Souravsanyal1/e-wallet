@@ -15,19 +15,19 @@ class WalletLoginView extends GetView<AuthController> {
     final walletProviders = [
       (
         name: 'MetaMask',
-        desc: 'Most popular browser extension & mobile app',
+        desc: 'Connect an installed browser or mobile wallet',
         icon: Icons.account_balance_wallet_rounded,
         color: const Color(0xFFF6851B),
       ),
       (
         name: 'Rainbow',
-        desc: 'Fast, secure, and delightful Web3 wallet',
+        desc: 'Connect Rainbow through a supported wallet provider',
         icon: Icons.looks_rounded,
         color: const Color(0xFF0019FF),
       ),
       (
         name: 'Coinbase',
-        desc: 'Self-custody wallet for mobile and web',
+        desc: 'Connect Coinbase Wallet through a supported provider',
         icon: Icons.circle_outlined,
         color: const Color(0xFF0052FF),
       ),

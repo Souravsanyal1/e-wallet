@@ -57,13 +57,7 @@ class FirebaseAuthRepository implements AuthRepository {
         nonce: data['nonce'] as String,
       ));
     } catch (e) {
-      // Direct client fallback if functions emulator is offline
-      final now = DateTime.now().toUtc();
-      final expiry = now.add(const Duration(minutes: 5));
-      final nonce = DateTime.now().millisecondsSinceEpoch.toRadixString(16);
-      final message =
-          '''elitechat.app wants you to sign in with your Ethereum account:\n$address\n\nSign in to EliteChat. This does not send a transaction or cost any gas.\n\nURI: https://elitechat.app\nVersion: 1\nChain ID: $chainId\nNonce: $nonce\nIssued At: ${now.toIso8601String()}\nExpiration Time: ${expiry.toIso8601String()}''';
-      return Ok((message: message, nonce: nonce));
+      return Err(AppException.network('Could not start wallet sign-in. Please try again.'));
     }
   }
 
@@ -94,20 +88,7 @@ class FirebaseAuthRepository implements AuthRepository {
       _cachedProfile = profile;
       return Ok(profile);
     } catch (e) {
-      // Local fallback in development when custom token signer service account is pending
-      final addressMatch = RegExp(r'0x[a-fA-F0-9]{40}').firstMatch(message);
-      final address = addressMatch?.group(0) ?? '0x71C8412092d8866F407b621946414380b49f4b9B';
-      final uid = 'web3_${address.toLowerCase()}';
-
-      final profile = ProfileModel(
-        id: uid,
-        handle: 'user_${address.substring(2, 8).toLowerCase()}',
-        displayName: '${address.substring(0, 6)}...${address.substring(address.length - 4)}',
-        createdAt: DateTime.now(),
-      );
-
-      _cachedProfile = profile;
-      return Ok(profile);
+      return Err(AppException.network('Wallet verification failed. Please try again.'));
     }
   }
 

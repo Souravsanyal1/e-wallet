@@ -5,7 +5,7 @@ import { ethers } from "ethers";
 import * as crypto from "crypto";
 
 const DOMAIN = "elitechat.app";
-const ALLOWED_CHAINS = [56, 97, 1]; // BSC Mainnet, BSC Testnet, Ethereum
+const ALLOWED_CHAINS = [56, 97]; // BNB Smart Chain mainnet and testnet
 
 export const authNonce = onCall(
   {
@@ -13,7 +13,7 @@ export const authNonce = onCall(
     maxInstances: 20,
   },
   async (req) => {
-    const { address, chainId = 56 } = req.data;
+    const { address, chainId = 97 } = req.data;
     if (!address || typeof address !== "string" || !ethers.isAddress(address)) {
       throw new HttpsError("invalid-argument", "Valid wallet address required.");
     }
@@ -34,6 +34,8 @@ export const authNonce = onCall(
       nonce,
       address: normalizedAddress,
       chainId,
+      domain: DOMAIN,
+      uri: `https://${DOMAIN}`,
       issuedAt: Timestamp.fromDate(now),
       expiresAt: Timestamp.fromDate(expiresAt),
       used: false,
@@ -50,19 +52,29 @@ export const authVerify = onCall(
   },
   async (req) => {
     const { message, signature } = req.data;
-    if (!message || !signature) {
+    if (typeof message !== "string" || typeof signature !== "string" ||
+        message.length > 2048 || !/^0x[0-9a-fA-F]{130}$/.test(signature)) {
       throw new HttpsError("invalid-argument", "Message and signature required.");
     }
 
     // 1. Parse SIWE message fields
-    const nonceMatch = message.match(/Nonce:\s*([a-fA-F0-9]+)/);
-    const addressMatch = message.match(/account:\n(0x[a-fA-F0-9]{40})/);
-    if (!nonceMatch || !addressMatch) {
+    const parsed = message.match(/^([^\s]+) wants you to sign in with your Ethereum account:\n(0x[a-fA-F0-9]{40})\n\nSign in to EliteChat\. This does not send a transaction or cost any gas\.\n\nURI: (https:\/\/[^\s]+)\nVersion: 1\nChain ID: (\d+)\nNonce: ([a-fA-F0-9]{32})\nIssued At: ([^\n]+)\nExpiration Time: ([^\n]+)$/);
+    if (!parsed || parsed[1] !== DOMAIN || parsed[3] !== `https://${DOMAIN}`) {
       throw new HttpsError("invalid-argument", "Malformed sign-in message.");
     }
 
-    const nonce = nonceMatch[1];
-    const claimedAddress = ethers.getAddress(addressMatch[1]);
+    const claimedAddress = ethers.getAddress(parsed[2]);
+    const chainId = Number(parsed[4]);
+    const nonce = parsed[5];
+    const issuedAt = Date.parse(parsed[6]);
+    const expirationTime = Date.parse(parsed[7]);
+    const nowMs = Date.now();
+    if (!ALLOWED_CHAINS.includes(chainId) || !Number.isFinite(issuedAt) ||
+        !Number.isFinite(expirationTime) || issuedAt > nowMs + 60_000 ||
+        expirationTime <= nowMs || expirationTime - issuedAt > 5 * 60_000 ||
+        issuedAt > expirationTime) {
+      throw new HttpsError("failed-precondition", "Invalid or expired sign-in request.");
+    }
 
     const db = getFirestore();
     const auth = getAuth();
@@ -75,7 +87,9 @@ export const authVerify = onCall(
         throw new HttpsError("not-found", "Invalid or expired sign-in nonce.");
       }
       const data = doc.data()!;
-      if (data.used || data.expiresAt.toDate() < new Date()) {
+      if (data.used || data.expiresAt.toDate() <= new Date() ||
+          data.address !== claimedAddress || data.chainId !== chainId ||
+          data.issuedAt.toMillis() !== issuedAt) {
         throw new HttpsError("failed-precondition", "Nonce has expired or was already used.");
       }
       t.update(nonceRef, { used: true, usedAt: FieldValue.serverTimestamp() });

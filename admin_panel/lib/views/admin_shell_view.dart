@@ -439,16 +439,16 @@ class AdminShellView extends GetView<AdminController> {
     );
   }
 
-  // --- 5. Payments (BSC BEP-20) ---
+  // --- 5. Premium Payments ---
   Widget _buildPaymentsTab(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('BNB Smart Chain Payments (BEP-20)', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+          const Text('Premium Payments · BNB Smart Chain Testnet', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
-          const Text('On-chain USDC subscription receipts and BscScan transaction ledger', style: TextStyle(fontSize: 13, color: AdminColors.textSecondary)),
+          const Text('On-chain E-FORCE Premium receipts and BscScan transaction ledger', style: TextStyle(fontSize: 13, color: AdminColors.textSecondary)),
           const SizedBox(height: 24),
           Expanded(
             child: Container(
@@ -461,7 +461,7 @@ class AdminShellView extends GetView<AdminController> {
                   ? _emptyState(
                       icon: Icons.currency_bitcoin_rounded,
                       title: 'No Payments Recorded',
-                      description: 'On-chain BEP-20 USDC transactions and subscription payments will appear here.',
+                      description: 'Confirmed and pending E-FORCE Premium payments will appear here.',
                     )
                   : ListView.separated(
                       itemCount: controller.payments.length,
@@ -470,7 +470,7 @@ class AdminShellView extends GetView<AdminController> {
                   final p = controller.payments[index];
                   return ListTile(
                     leading: const Icon(Icons.check_circle_rounded, color: AdminColors.success),
-                    title: Text('${p.amount.toInt()} USDC on BSC', style: const TextStyle(fontWeight: FontWeight.w600)),
+                    title: Text('${p.displayAmount} ${p.tokenSymbol} on BSC · ${p.status}', style: const TextStyle(fontWeight: FontWeight.w600)),
                     subtitle: Text('Tx: ${p.txHash}'),
                     trailing: TextButton.icon(
                       icon: const Icon(Icons.open_in_new_rounded, size: 14),
@@ -489,30 +489,32 @@ class AdminShellView extends GetView<AdminController> {
 
   // --- 6. Plans View ---
   Widget _buildPlansTab(BuildContext context) {
+    const plans = [
+      ('1 Month', '30 days · 500 E-FORCE · $4.99 list'),
+      ('2 Months', '60 days · 950 E-FORCE · $9.49 list'),
+      ('3 Months', '90 days · 1,350 E-FORCE · $13.49 list'),
+      ('1 Year', '365 days · 4,800 E-FORCE · $47.99 list'),
+      ('2 Years', '730 days · 8,400 E-FORCE · $83.99 list'),
+    ];
     return const Padding(
       padding: EdgeInsets.all(32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Subscription Plans', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+          Text('Premium Plans', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
           SizedBox(height: 4),
-          Text('Manage Pro Trader & Alpha Insider tiers (Requires 2-person approval for receiver changes)', style: TextStyle(fontSize: 13, color: AdminColors.textSecondary)),
+          Text('Draft prices from premium-access-and-plans.md. These are not enabled until the E-FORCE chain, contract, decimals, and receiver are verified.', style: TextStyle(fontSize: 13, color: AdminColors.textSecondary)),
           SizedBox(height: 24),
-          Card(
-            child: ListTile(
-              title: Text('Pro Trader', style: TextStyle(fontWeight: FontWeight.w700)),
-              subtitle: Text('50 USDC / 30 Days · Token: BSC BEP-20 USDC'),
-              trailing: Text('ACTIVE', style: TextStyle(color: AdminColors.success, fontWeight: FontWeight.w700)),
-            ),
-          ),
-          SizedBox(height: 12),
-          Card(
-            child: ListTile(
-              title: Text('Alpha Insider', style: TextStyle(fontWeight: FontWeight.w700)),
-              subtitle: Text('150 USDC / 30 Days · Token: BSC BEP-20 USDC'),
-              trailing: Text('ACTIVE', style: TextStyle(color: AdminColors.success, fontWeight: FontWeight.w700)),
-            ),
-          ),
+          ...plans.map((plan) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Card(
+                  child: ListTile(
+                    title: Text(plan.$1, style: const TextStyle(fontWeight: FontWeight.w700)),
+                    subtitle: Text(plan.$2),
+                    trailing: const Text('DRAFT · DISABLED', style: TextStyle(color: AdminColors.warning, fontWeight: FontWeight.w700)),
+                  ),
+                ),
+              )),
         ],
       ),
     );

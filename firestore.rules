@@ -19,7 +19,9 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isAuthenticated();
       allow update: if isOwner(userId) &&
-        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'suspendedUntil', 'role']);
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'status', 'suspendedUntil', 'role', 'premiumUntil', 'isPremium', 'premiumTier'
+        ]);
       allow create, delete: if false; // Created via Cloud Function
 
       // Private server-only moderation subcollection
@@ -86,6 +88,16 @@ service cloud.firestore {
     }
 
     match /payments/{paymentId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+
+    match /paymentQuotes/{quoteId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+
+    match /premiumGrants/{grantId} {
       allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
       allow write: if false;
     }

@@ -12,7 +12,7 @@ export { uploadSign } from "./uploads";
 export { createConversation } from "./conversations";
 
 // Payments & Subscriptions
-export { verifyPayment, expireSubscriptions } from "./payments";
+export { createPremiumQuote, verifyPayment, expireSubscriptions, recheckPayments } from "./payments";
 
 // Notifications
 export { onMessageCreated } from "./notifications";

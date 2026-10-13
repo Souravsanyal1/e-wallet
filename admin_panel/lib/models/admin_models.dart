@@ -129,7 +129,9 @@ class PaymentItem {
   final String id;
   final String userId;
   final String txHash;
-  final double amount;
+  final String amount;
+  final int tokenDecimals;
+  final String tokenSymbol;
   final String status;
   final DateTime createdAt;
 
@@ -138,6 +140,8 @@ class PaymentItem {
     required this.userId,
     required this.txHash,
     required this.amount,
+    required this.tokenDecimals,
+    required this.tokenSymbol,
     required this.status,
     required this.createdAt,
   });
@@ -158,10 +162,21 @@ class PaymentItem {
       id: docId,
       userId: data['userId'] as String? ?? '',
       txHash: data['txHash'] as String? ?? '',
-      amount: (data['amount'] as num?)?.toDouble() ?? 0.0,
+      amount: data['amount']?.toString() ?? '0',
+      tokenDecimals: data['tokenDecimals'] as int? ?? 0,
+      tokenSymbol: data['tokenSymbol'] as String? ?? 'E-FORCE',
       status: data['status'] as String? ?? 'confirmed',
       createdAt: parseDate(data['createdAt']),
     );
+  }
+
+  String get displayAmount {
+    final raw = BigInt.tryParse(amount) ?? BigInt.zero;
+    if (tokenDecimals <= 0) return raw.toString();
+    final scale = BigInt.from(10).pow(tokenDecimals);
+    final whole = raw ~/ scale;
+    final fraction = (raw % scale).toString().padLeft(tokenDecimals, '0').replaceFirst(RegExp(r'0+$'), '');
+    return fraction.isEmpty ? whole.toString() : '$whole.$fraction';
   }
 }
 

@@ -163,9 +163,12 @@ conversations/{cid}                  type, memberIds[], title, lastMessageAt, cr
 channels/{chid}                      handle, title, isPublic, requiredPlanId
   members/{uid}
   posts/{pid}
-plans/{planId}                       chainId, token, decimals, receiver, price (base units, string), durationDays
+plans/{planId}                       E-FORCE config: chainId, token, tokenDecimals, receiver, price (base units, string), durationDays, isActive
+paymentQuotes/{quoteId}              userId, planId, locked amount/config, 30-minute expiry; server-only writes
 payments/{chainId_txHash}            doc ID is the uniqueness guard; server-only
-subscriptions/{uid}                  planId, expiresAt; server-only writes
+premiumGrants/{chainId_txHash}       one token grant per transaction; server-only
+subscriptions/{uid}                  current plan/payment status and expiry; server-only writes
+users/{uid}.premiumUntil             authoritative Premium expiry; only Cloud Functions may write
 deviceTokens/{uid}/tokens/{token}
 blocks/{uid}/blocked/{otherUid}
 reports/{id}
@@ -248,7 +251,7 @@ Notes:
 - Enforce a size and format allowlist at upload time, and review how location metadata is handled in Cloudinary settings.
 - Optional scheduled job: clean up uploads that never became part of a message.
 
-## 9. BEP-20 payments on BNB Smart Chain
+## 9. E-FORCE Premium payments on BNB Smart Chain
 
 - Chain ID 56 in production, 97 on testnet. Use a paid RPC provider (public endpoints are rate-limited) and keep the key in Secret Manager.
 - Plans come from the `plans` collection; the client sends only `planId` and `txHash`.
@@ -260,8 +263,10 @@ Notes:
   5. The sender is one of the caller's linked wallets.
   6. Enough confirmations; otherwise store `pending` and let `recheckPayments` finish it. Re-verify the receipt before confirming to handle reorgs.
   7. Write `payments` and `subscriptions/{uid}` in one transaction; extend from `max(now, current expiresAt)`.
-- Accept only an allowlist of tokens. Fake tokens and fee-on-transfer tokens are real risks.
-- Read decimals from configuration for each token. For example, USDT on BSC uses 18 decimals, unlike 6 on Ethereum. Never hard-code decimals.
+- Accept only the configured E-FORCE contract for each active plan. The E-FORCE chain, contract address, and decimals are still launch decisions and must be verified before enabling a plan.
+- Read decimals from each plan's `tokenDecimals`; never assume E-FORCE has 18 decimals until verified.
+- Premium uses the five plan keys and proposed token amounts in [premium-access-and-plans.md](premium-access-and-plans.md). Prices are stored as integer base-unit strings. The server issues a 30-minute quote and checks the transaction's block time against that quote.
+- On confirmation, atomically write the payment, one `premiumGrants` ledger row, the subscription status, and `users/{uid}.premiumUntil = max(now, current premiumUntil) + durationDays`.
 - Users need a little BNB for gas; say so in the payment UI.
 - BSC finality is quick, but confirm current finality guidance and choose your own confirmation threshold.
 - Avoid recurring token approvals for the MVP; sell one-off periods.
