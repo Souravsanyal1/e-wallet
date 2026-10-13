@@ -489,12 +489,12 @@ class AdminShellView extends GetView<AdminController> {
 
   // --- 6. Plans View ---
   Widget _buildPlansTab(BuildContext context) {
-    const plans = [
-      ('1 Month', '30 days · 500 E-FORCE · $4.99 list'),
-      ('2 Months', '60 days · 950 E-FORCE · $9.49 list'),
-      ('3 Months', '90 days · 1,350 E-FORCE · $13.49 list'),
-      ('1 Year', '365 days · 4,800 E-FORCE · $47.99 list'),
-      ('2 Years', '730 days · 8,400 E-FORCE · $83.99 list'),
+    final plans = [
+      ('1 Month', '30 days · 500 E-FORCE · \$4.99 list'),
+      ('2 Months', '60 days · 950 E-FORCE · \$9.49 list'),
+      ('3 Months', '90 days · 1,350 E-FORCE · \$13.49 list'),
+      ('1 Year', '365 days · 4,800 E-FORCE · \$47.99 list'),
+      ('2 Years', '730 days · 8,400 E-FORCE · \$83.99 list'),
     ];
     return Padding(
       padding: EdgeInsets.all(32),

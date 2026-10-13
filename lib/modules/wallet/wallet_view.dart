@@ -270,7 +270,7 @@ class WalletView extends GetView<WalletController> {
                                   ),
                                 ),
                                 if (plan.usdListPriceCents != null)
-                                  Text('USD list $${(plan.usdListPriceCents! / 100).toStringAsFixed(2)}'),
+                                  Text('USD list \$${(plan.usdListPriceCents! / 100).toStringAsFixed(2)}'),
                               ],
                             ),
                           ],
